@@ -77,9 +77,7 @@ export default function AuraHero() {
             <div className="flex items-center gap-3 text-xs font-mono text-zinc-400 mb-6">
               <span className="text-cyan-400 tracking-[0.25em] font-semibold uppercase">AURA-RV PROJECT</span>
               <span className="text-zinc-600">·</span>
-              <span className="text-zinc-400">RV32I BASE ISA</span>
-              <span className="text-zinc-600">·</span>
-              <span className="text-zinc-400">IEEE 1800 SYSTEMVERILOG</span>
+              <span className="text-cyan-300 font-semibold tracking-wider uppercase">BUILT BY SUDHANSHU MISHRA</span>
             </div>
 
             {/* Main Headline */}

@@ -1,7 +1,7 @@
 import React from 'react';
 import DitherVeil from '@/components/ui/DitherVeil';
 import MoltenMetal from '@/components/ui/MoltenMetal';
-import { Layers, Sparkles, Cpu, Eye } from 'lucide-react';
+import { Cpu, Eye } from 'lucide-react';
 
 export function CodeToSilicon() {
   return (
