@@ -1,0 +1,28 @@
+.infinite-spiral-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  user-select: none;
+}
+
+.infinite-spiral-stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-style: preserve-3d;
+}
+
+.infinite-spiral-card {
+  position: absolute;
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.infinite-spiral-card:hover {
+  z-index: 50;
+  box-shadow: 0 0 25px rgba(34, 211, 238, 0.4);
+  border-color: rgba(34, 211, 238, 0.6) !important;
+}

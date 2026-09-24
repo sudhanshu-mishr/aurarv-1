@@ -1,0 +1,6 @@
+{
+  "name": "AURA-RV — RISC-V CPU Engineering",
+  "description": "A RISC-V CPU. Built from RTL to Silicon. Open-source processor architecture engineered from instruction set to RTL, verification, synthesis, and physical-design exploration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

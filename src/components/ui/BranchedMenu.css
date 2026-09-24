@@ -1,0 +1,37 @@
+.branched-menu-wrapper {
+  position: relative;
+  user-select: none;
+  font-family: inherit;
+}
+
+.branched-menu-item {
+  display: flex;
+  align-items: center;
+  transition: color 0.18s ease, background-color 0.18s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.branched-menu-item:hover {
+  color: #fff !important;
+}
+
+.branched-menu-child {
+  position: relative;
+  display: flex;
+  align-items: center;
+  transition: all 0.18s ease;
+  cursor: pointer;
+}
+
+.branched-menu-child.active {
+  font-weight: 600;
+}
+
+.branched-svg-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  overflow: visible;
+}
