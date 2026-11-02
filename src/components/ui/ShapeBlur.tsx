@@ -104,12 +104,25 @@ export default function ShapeBlur({
     const container = containerRef.current;
     if (!container) return;
 
-    let animationFrameId: number;
+    let animationFrameId: number = 0;
+    let isVisible = true;
+    let isTabActive = !document.hidden;
+
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-    const pr = pixelRatioProp || Math.min(window.devicePixelRatio || 1, 2);
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
+    const pr = pixelRatioProp || Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, 1.5);
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: false,
+        powerPreference: 'high-performance',
+      });
+    } catch {
+      return;
+    }
+
     renderer.setPixelRatio(pr);
     rendererRef.current = renderer;
 
@@ -163,24 +176,56 @@ export default function ShapeBlur({
       const h = container.clientHeight || window.innerHeight;
       renderer.setSize(w, h);
       uniforms.u_resolution.value.set(w * pr, h * pr);
+      renderer.render(scene, camera);
     };
 
     window.addEventListener('resize', onResize);
 
     const clock = new THREE.Clock();
-    const animate = () => {
+
+    const render = () => {
       mouseX += (targetMouseX - mouseX) * 0.05;
       mouseY += (targetMouseY - mouseY) * 0.05;
       uniforms.u_mouse.value.set(mouseX * pr, mouseY * pr);
       uniforms.u_time.value = clock.getElapsedTime();
       renderer.render(scene, camera);
-      animationFrameId = requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(render);
     };
 
-    animate();
+    const startLoop = () => {
+      if (isVisible && isTabActive && animationFrameId === 0) {
+        animationFrameId = requestAnimationFrame(render);
+      }
+    };
+
+    const stopLoop = () => {
+      if (animationFrameId !== 0) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = 0;
+      }
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        isVisible ? startLoop() : stopLoop();
+      },
+      { threshold: 0.05 }
+    );
+    io.observe(container);
+
+    const handleVisibility = () => {
+      isTabActive = !document.hidden;
+      isTabActive ? startLoop() : stopLoop();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    startLoop();
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      stopLoop();
+      io.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('resize', onResize);
       if (renderer.domElement && container.contains(renderer.domElement)) {

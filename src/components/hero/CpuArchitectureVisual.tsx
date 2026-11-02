@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface VisualNode {
   id: string;
@@ -14,13 +14,50 @@ interface VisualNode {
 export default function CpuArchitectureVisual() {
   const [activeStep, setActiveStep] = useState(0);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Cycle through CPU execution steps to animate real hardware flow
+  // Cycle through CPU execution steps with visibility check to prevent background cycles
   useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveStep((prev) => (prev + 1) % 6);
-    }, 1800);
-    return () => clearInterval(timer);
+    let timer: number | null = null;
+    let isVisible = true;
+
+    const startTimer = () => {
+      if (!timer && isVisible && !document.hidden) {
+        timer = window.setInterval(() => {
+          setActiveStep((prev) => (prev + 1) % 6);
+        }, 1800);
+      }
+    };
+
+    const stopTimer = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+
+    const io = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+      isVisible ? startTimer() : stopTimer();
+    }, { threshold: 0.1 });
+
+    if (containerRef.current) {
+      io.observe(containerRef.current);
+    }
+
+    const handleVisibility = () => {
+      if (document.hidden) stopTimer();
+      else startTimer();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    startTimer();
+
+    return () => {
+      stopTimer();
+      io.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 
   const nodes: VisualNode[] = [
@@ -35,11 +72,11 @@ export default function CpuArchitectureVisual() {
   ];
 
   return (
-    <div className="relative h-full w-full flex items-center justify-center p-4">
+    <div ref={containerRef} className="relative h-full w-full flex items-center justify-center p-2 sm:p-4">
       {/* Background radial gradient glow behind CPU datapath */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(34,211,238,0.06)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(34,211,238,0.08)_0%,transparent_70%)] pointer-events-none" />
 
-      <div className="relative w-full max-w-[500px] h-[640px]">
+      <div className="relative w-full max-w-[480px] h-[580px] sm:h-[620px]">
         <svg
           viewBox="0 0 480 640"
           className="w-full h-full drop-shadow-2xl select-none"
@@ -47,7 +84,6 @@ export default function CpuArchitectureVisual() {
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
-            {/* Gradients */}
             <linearGradient id="busGradCyan" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.8" />
               <stop offset="100%" stopColor="#818cf8" stopOpacity="0.8" />
@@ -75,7 +111,6 @@ export default function CpuArchitectureVisual() {
             stroke={activeStep === 0 ? '#22d3ee' : '#3f3f46'}
             strokeWidth={activeStep === 0 ? '2' : '1.2'}
             strokeDasharray={activeStep === 0 ? '6 4' : 'none'}
-            className={activeStep === 0 ? 'animate-[dash_1s_linear_infinite]' : ''}
             markerEnd={activeStep === 0 ? 'url(#arrow)' : 'url(#arrowMuted)'}
           />
 
@@ -241,7 +276,7 @@ export default function CpuArchitectureVisual() {
               }</span>
             </span>
           </div>
-          <span className="font-mono text-[10px] text-zinc-500">
+          <span className="font-mono text-[10px] text-zinc-500 hidden sm:inline">
             RV32I · 32-bit Single Cycle Datapath
           </span>
         </div>

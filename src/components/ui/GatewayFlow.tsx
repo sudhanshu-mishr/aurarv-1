@@ -28,26 +28,31 @@ export default function GatewayFlow({
   className = '',
 }: GatewayFlowProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let animId: number;
-    let width = (canvas.width = canvas.parentElement?.clientWidth || window.innerWidth);
-    let height = (canvas.height = canvas.parentElement?.clientHeight || window.innerHeight);
+    let animId: number = 0;
+    let isVisible = true;
+    let isTabActive = !document.hidden;
+
+    let width = (canvas.width = container.clientWidth || window.innerWidth);
+    let height = (canvas.height = container.clientHeight || window.innerHeight);
 
     const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = canvas.parentElement?.clientWidth || window.innerWidth;
-      height = canvas.height = canvas.parentElement?.clientHeight || window.innerHeight;
+      if (!canvas || !container) return;
+      width = canvas.width = container.clientWidth || window.innerWidth;
+      height = canvas.height = container.clientHeight || window.innerHeight;
     };
     window.addEventListener('resize', handleResize);
 
     // Generate physical routing channels (horizontal + vertical standard-cell routing tracks)
-    const numChannels = Math.floor(height / gap);
+    const numChannels = Math.max(1, Math.floor(height / gap));
     const channels = Array.from({ length: numChannels }, (_, i) => ({
       y: i * gap + gap / 2,
       pulses: Array.from({ length: 3 + Math.floor(Math.random() * 3) }, () => ({
@@ -64,7 +69,7 @@ export default function GatewayFlow({
     let lastTime = performance.now();
 
     const render = (time: number) => {
-      const dt = (time - lastTime) / 1000;
+      const dt = Math.min((time - lastTime) / 1000, 0.1);
       lastTime = time;
 
       ctx.clearRect(0, 0, width, height);
@@ -100,23 +105,19 @@ export default function GatewayFlow({
           ctx.lineTo(Math.min(width, p.x), ch.y);
           ctx.stroke();
 
-          // Via connector point / spark
-          if (p.x > 0 && p.x < width) {
-            ctx.fillStyle = '#ffffff';
-            ctx.shadowColor = p.color;
-            ctx.shadowBlur = 6;
-            ctx.beginPath();
-            ctx.arc(p.x, ch.y, 1.8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
+          // Via drop
+          if (p.hasVia && p.x > 0 && p.x < width) {
+            const viaY = ch.y + p.viaLength;
+            if (viaY < height) {
+              const viaGrad = ctx.createLinearGradient(p.x, ch.y, p.x, viaY);
+              viaGrad.addColorStop(0, p.color);
+              viaGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-            // Optional vertical drop to emulate routing layers (M1 to M2 via)
-            if (p.hasVia && Math.sin(p.x * 0.01) > 0.5) {
-              ctx.strokeStyle = p.color;
+              ctx.strokeStyle = viaGrad;
               ctx.lineWidth = strokeWidth * 0.8;
               ctx.beginPath();
               ctx.moveTo(p.x, ch.y);
-              ctx.lineTo(p.x, ch.y + 16);
+              ctx.lineTo(p.x, viaY);
               ctx.stroke();
             }
           }
@@ -126,16 +127,47 @@ export default function GatewayFlow({
       animId = requestAnimationFrame(render);
     };
 
-    animId = requestAnimationFrame(render);
+    const startLoop = () => {
+      if (isVisible && isTabActive && animId === 0) {
+        lastTime = performance.now();
+        animId = requestAnimationFrame(render);
+      }
+    };
+
+    const stopLoop = () => {
+      if (animId !== 0) {
+        cancelAnimationFrame(animId);
+        animId = 0;
+      }
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        isVisible ? startLoop() : stopLoop();
+      },
+      { threshold: 0.05 }
+    );
+    io.observe(container);
+
+    const handleVisibility = () => {
+      isTabActive = !document.hidden;
+      isTabActive ? startLoop() : stopLoop();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    startLoop();
 
     return () => {
-      cancelAnimationFrame(animId);
+      stopLoop();
+      io.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('resize', handleResize);
     };
   }, [accentColor, color, gap, length, opacity, speed, strokeWidth]);
 
   return (
-    <div className={`relative h-full w-full overflow-hidden pointer-events-none ${className}`}>
+    <div ref={containerRef} className={`relative h-full w-full overflow-hidden pointer-events-none ${className}`}>
       <canvas ref={canvasRef} className="block h-full w-full" />
     </div>
   );

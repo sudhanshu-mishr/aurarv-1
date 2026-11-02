@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircle2, Clock, CircleDot, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface RoadmapPhase {
   phase: string;
@@ -58,8 +59,8 @@ export default function EngineeringRoadmap() {
       title: 'SoC & Interconnect',
       status: 'Planned',
       items: [
-        'TileLink / Wishbone on-chip system bus',
-        'Standard memory-mapped peripherals (UART, Timer)',
+        'Standard memory-mapped peripheral bus (Wishbone)',
+        'Basic peripheral interfaces (UART, Timer)',
         'Vectored interrupts & CSR registers',
         'Minimal bootloader firmware flow',
       ],
@@ -69,10 +70,10 @@ export default function EngineeringRoadmap() {
       title: 'Silicon Exploration',
       status: 'Planned',
       items: [
-        'Logic synthesis with Yosys',
-        'Physical design exploration via LibreLane / OpenLane',
-        'Static timing analysis (STA) closure',
-        'Standard cell DRC / LVS and clean GDSII export',
+        'Automated logic synthesis with Yosys',
+        'Physical design flow via LibreLane / OpenLane',
+        'Static timing analysis (STA) exploration',
+        'Standard cell routing exploration toward GDSII',
       ],
     },
   ];
@@ -82,7 +83,13 @@ export default function EngineeringRoadmap() {
       <div className="mx-auto max-w-7xl px-6">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16"
+        >
           <div className="max-w-2xl">
             <div className="text-xs font-mono tracking-[0.25em] text-cyan-400 uppercase font-semibold">
               DEVELOPMENT HORIZON
@@ -90,7 +97,7 @@ export default function EngineeringRoadmap() {
             <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
               Engineering Roadmap
             </h2>
-            <p className="mt-4 text-zinc-400 text-base sm:text-lg">
+            <p className="mt-4 text-zinc-400 text-base sm:text-lg font-light leading-relaxed">
               A transparent engineering plan guiding AURA-RV from foundation architecture toward pipelined microarchitectures and physical silicon layout.
             </p>
           </div>
@@ -102,21 +109,25 @@ export default function EngineeringRoadmap() {
             <span className="flex items-center gap-1.5 text-cyan-400">
               <Clock className="h-4 w-4" /> Current
             </span>
-            <span className="flex items-center gap-1.5 text-zinc-600">
+            <span className="flex items-center gap-1.5 text-zinc-500">
               <CircleDot className="h-4 w-4" /> Planned
             </span>
           </div>
-        </div>
+        </motion.div>
 
         {/* 6 Phases Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {phases.map((p) => {
+          {phases.map((p, idx) => {
             const isCompleted = p.status === 'Completed';
             const isCurrent = p.status === 'Current Focus';
 
             return (
-              <div
+              <motion.div
                 key={p.phase}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.45, delay: idx * 0.06, ease: [0.16, 1, 0.3, 1] }}
                 className={`relative flex flex-col justify-between rounded-2xl border p-6 transition-all duration-300 ${
                   isCurrent
                     ? 'border-cyan-400/50 bg-[#091424] shadow-[0_0_25px_rgba(34,211,238,0.12)] ring-1 ring-cyan-400/30'
@@ -151,7 +162,7 @@ export default function EngineeringRoadmap() {
                     {p.items.map((item, i) => (
                       <li key={i} className="flex items-start gap-2">
                         <ChevronRight className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${isCurrent ? 'text-cyan-400' : isCompleted ? 'text-emerald-400' : 'text-zinc-600'}`} />
-                        <span className="leading-relaxed">{item}</span>
+                        <span className="leading-relaxed font-light">{item}</span>
                       </li>
                     ))}
                   </ul>
@@ -161,7 +172,7 @@ export default function EngineeringRoadmap() {
                   <span>Scope: Open-Source</span>
                   <span>{isCurrent ? 'Active Sprint' : isCompleted ? 'Verified' : 'Backlog'}</span>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

@@ -65,8 +65,8 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-zinc-600">
-            © {new Date().getFullYear()} AURA-RV Project. Open-source hardware under Apache 2.0.
+          <div className="text-zinc-500">
+            © {new Date().getFullYear()} AURA-RV Project. Built by Sudhanshu Mishra · Open-source hardware under Apache 2.0.
           </div>
 
           <button

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Cpu, Terminal, Shield, BookOpen } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function ProjectAbout() {
   return (
@@ -7,7 +8,13 @@ export default function ProjectAbout() {
       <div className="mx-auto max-w-7xl px-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          <div className="lg:col-span-7">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-7"
+          >
             <div className="text-xs font-mono tracking-[0.25em] text-cyan-400 uppercase font-semibold">
               ABOUT THE PROJECT
             </div>
@@ -39,10 +46,16 @@ export default function ProjectAbout() {
                 <span>Apache 2.0 / Permissive Open Source</span>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="lg:col-span-5">
-            <div className="rounded-2xl border border-white/10 bg-[#060a13] p-7 backdrop-blur-xl">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-5"
+          >
+            <div className="rounded-2xl border border-white/10 bg-[#060a13] p-7 backdrop-blur-xl shadow-2xl">
               <h3 className="font-mono text-xs uppercase tracking-wider text-zinc-400 font-semibold mb-4">
                 PROJECT MANIFEST
               </h3>
@@ -70,7 +83,7 @@ export default function ProjectAbout() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
         </div>
       </div>

@@ -3,6 +3,7 @@ import ShapeBlur from '@/components/ui/ShapeBlur';
 import ShapeWaves from '@/components/ui/ShapeWaves';
 import CpuArchitectureVisual from './CpuArchitectureVisual';
 import { ArrowRight, Github, Cpu, Terminal, Layers } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function AuraHero() {
   const scrollTo = (id: string) => {
@@ -21,7 +22,7 @@ export default function AuraHero() {
       <div className="absolute inset-0 z-0 pointer-events-none">
         <ShapeBlur
           variation={0}
-          pixelRatioProp={Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, 2)}
+          pixelRatioProp={Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, 1.5)}
           shapeSize={0.72}
           roundness={0.72}
           borderSize={0.025}
@@ -71,9 +72,14 @@ export default function AuraHero() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center w-full">
           
           {/* Left Column: Typography & CTAs */}
-          <div className="lg:col-span-7 flex flex-col justify-center">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-7 flex flex-col justify-center"
+          >
             
-            {/* Architectural Kicker (No pill box, clean typographic text) */}
+            {/* Architectural Kicker */}
             <div className="flex items-center gap-3 text-xs font-mono text-zinc-400 mb-6">
               <span className="text-cyan-400 tracking-[0.25em] font-semibold uppercase">AURA-RV PROJECT</span>
               <span className="text-zinc-600">·</span>
@@ -133,10 +139,15 @@ export default function AuraHero() {
               </div>
             </div>
 
-          </div>
+          </motion.div>
 
           {/* Right Column: Hero CPU Visualization */}
-          <div className="lg:col-span-5 flex justify-center items-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-5 flex justify-center items-center"
+          >
             <div className="w-full max-w-md lg:max-w-none rounded-2xl border border-white/10 bg-[#060a12]/80 p-4 shadow-2xl backdrop-blur-xl">
               <div className="flex items-center justify-between pb-3 mb-2 border-b border-white/10 text-xs font-mono text-zinc-400">
                 <span className="flex items-center gap-2 text-zinc-300">
@@ -147,7 +158,7 @@ export default function AuraHero() {
               </div>
               <CpuArchitectureVisual />
             </div>
-          </div>
+          </motion.div>
 
         </div>
       </div>

@@ -82,7 +82,13 @@ export default function IsaTable() {
       <div className="mx-auto max-w-7xl px-6">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10"
+        >
           <div className="max-w-2xl">
             <div className="text-xs font-mono tracking-[0.25em] text-cyan-400 uppercase font-semibold">
               INSTRUCTION SET ARCHITECTURE
@@ -90,7 +96,7 @@ export default function IsaTable() {
             <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
               RV32I Instruction Set
             </h2>
-            <p className="mt-4 text-zinc-400 text-base sm:text-lg">
+            <p className="mt-4 text-zinc-400 text-base sm:text-lg font-light leading-relaxed">
               Official verification status of supported 32-bit integer instructions. Filter by instruction type below to watch rows smoothly shift, reorder, and reveal bitfield encodings.
             </p>
           </div>
@@ -134,7 +140,7 @@ export default function IsaTable() {
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         <LayoutGroup id="isa-table-motion-group">
           {/* Filter Segmented Control Tabs with Instruction Counter Badges */}
@@ -333,24 +339,26 @@ export default function IsaTable() {
                                           </span>
                                         </div>
 
-                                        <div className="grid grid-cols-6 gap-1.5 text-center font-mono">
-                                          {inst.fields.map((field, fIdx) => (
-                                            <motion.div
-                                              key={fIdx}
-                                              initial={{ opacity: 0, y: 8 }}
-                                              animate={{ opacity: 1, y: 0 }}
-                                              transition={{ delay: fIdx * 0.03, duration: 0.2 }}
-                                              className="rounded-lg border border-white/10 bg-white/[0.03] p-2.5 flex flex-col justify-between"
-                                            >
-                                              <span className="text-[10px] text-zinc-500">[{field.bits}]</span>
-                                              <span className={`text-xs font-bold mt-1 ${field.color || 'text-white'}`}>
-                                                {field.name}
-                                              </span>
-                                              <span className="text-[10px] text-zinc-400 font-mono mt-1 truncate">
-                                                {field.value}
-                                              </span>
-                                            </motion.div>
-                                          ))}
+                                        <div className="overflow-x-auto pb-1">
+                                          <div className="grid grid-cols-6 gap-1.5 min-w-[500px] text-center font-mono">
+                                            {inst.fields.map((field, fIdx) => (
+                                              <motion.div
+                                                key={fIdx}
+                                                initial={{ opacity: 0, y: 8 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: fIdx * 0.03, duration: 0.2 }}
+                                                className="rounded-lg border border-white/10 bg-white/[0.03] p-2.5 flex flex-col justify-between"
+                                              >
+                                                <span className="text-[10px] text-zinc-500">[{field.bits}]</span>
+                                                <span className={`text-xs font-bold mt-1 ${field.color || 'text-white'}`}>
+                                                  {field.name}
+                                                </span>
+                                                <span className="text-[10px] text-zinc-400 font-mono mt-1 truncate">
+                                                  {field.value}
+                                                </span>
+                                              </motion.div>
+                                            ))}
+                                          </div>
                                         </div>
                                       </div>
 
@@ -540,24 +548,26 @@ export default function IsaTable() {
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-6 gap-2 text-center font-mono">
-                          {selectedInst.fields.map((field, fIdx) => (
-                            <motion.div
-                              key={fIdx}
-                              initial={{ opacity: 0, y: 6 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: fIdx * 0.03, duration: 0.2 }}
-                              className="rounded-xl border border-white/10 bg-white/[0.03] p-3 flex flex-col justify-between"
-                            >
-                              <span className="text-[10px] text-zinc-500">[{field.bits}]</span>
-                              <span className={`text-xs font-bold mt-1 ${field.color || 'text-white'}`}>
-                                {field.name}
-                              </span>
-                              <span className="text-[11px] text-zinc-300 font-mono mt-1 truncate">
-                                {field.value}
-                              </span>
-                            </motion.div>
-                          ))}
+                        <div className="overflow-x-auto pb-1">
+                          <div className="grid grid-cols-6 gap-2 min-w-[500px] text-center font-mono">
+                            {selectedInst.fields.map((field, fIdx) => (
+                              <motion.div
+                                key={fIdx}
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: fIdx * 0.03, duration: 0.2 }}
+                                className="rounded-xl border border-white/10 bg-white/[0.03] p-3 flex flex-col justify-between"
+                              >
+                                <span className="text-[10px] text-zinc-500">[{field.bits}]</span>
+                                <span className={`text-xs font-bold mt-1 ${field.color || 'text-white'}`}>
+                                  {field.name}
+                                </span>
+                                <span className="text-[11px] text-zinc-300 font-mono mt-1 truncate">
+                                  {field.value}
+                                </span>
+                              </motion.div>
+                            ))}
+                          </div>
                         </div>
                       </div>
 

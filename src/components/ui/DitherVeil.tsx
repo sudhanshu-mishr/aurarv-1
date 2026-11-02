@@ -99,149 +99,133 @@ function createSiliconLayoutCanvas(): HTMLCanvasElement {
   ctx.fillStyle = '#818cf8';
   ctx.fillText('AURA-RV // CORE DATAPATH', 385, 105);
 
-  // Sub-blocks in core
-  ctx.fillStyle = '#183658';
-  ctx.fillRect(390, 125, 240, 70); // ALU
-  ctx.fillStyle = '#38bdf8';
-  ctx.fillText('ALU + SHIFTER', 400, 155);
+  // Sub-blocks in Datapath
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+  ctx.strokeRect(390, 130, 110, 80);
+  ctx.fillText('ALU_32', 400, 175);
 
-  ctx.fillStyle = '#183658';
-  ctx.fillRect(390, 210, 240, 90); // Regfile (32 x 32)
-  ctx.fillStyle = '#818cf8';
-  ctx.fillText('REGISTER FILE (32x32)', 400, 240);
+  ctx.strokeRect(520, 130, 110, 80);
+  ctx.fillText('REG_32X32', 530, 175);
 
-  ctx.fillStyle = '#183658';
-  ctx.fillRect(390, 315, 240, 105); // Control & Decode
-  ctx.fillStyle = '#22d3ee';
-  ctx.fillText('CONTROL & DECODE LOGIC', 400, 345);
+  ctx.strokeRect(390, 230, 240, 90);
+  ctx.fillText('CONTROL_UNIT & IMM_GEN', 400, 280);
 
-  // 4. Standard Cell Placement Area (Bottom)
-  ctx.fillStyle = '#091322';
-  ctx.fillRect(80, 460, 860, 210);
-  ctx.strokeStyle = '#22d3ee';
+  ctx.strokeRect(390, 340, 240, 80);
+  ctx.fillText('WRITEBACK_MUX / PC_GEN', 400, 385);
+
+  // 4. Standard Cell Logic Fill (Bottom Region)
+  ctx.fillStyle = '#091424';
+  ctx.fillRect(80, 460, 860, 240);
+  ctx.strokeStyle = '#0284c7';
   ctx.lineWidth = 1;
-  ctx.strokeRect(80, 460, 860, 210);
-  ctx.fillStyle = '#22d3ee';
-  ctx.fillText('STANDARD CELL PLACEMENT & ROUTING TRACKS (M1-M4)', 95, 485);
+  ctx.strokeRect(80, 460, 860, 240);
+  ctx.fillStyle = '#0284c7';
+  ctx.fillText('STD CELL LOGIC // OPEN ROAD PLACEMENT', 95, 485);
 
-  // Cell rows with dense logic gates
-  ctx.fillStyle = '#142c4a';
-  for (let row = 0; row < 12; row++) {
-    const y = 500 + row * 13;
-    let x = 95;
-    while (x < 920) {
-      const cellW = 8 + Math.floor(Math.sin(x + row) * 16 + 18);
-      ctx.fillRect(x, y, cellW, 9);
-      x += cellW + 3;
+  // Cell rows simulation
+  ctx.strokeStyle = 'rgba(34, 211, 238, 0.15)';
+  ctx.lineWidth = 1;
+  for (let y = 505; y < 685; y += 14) {
+    ctx.beginPath();
+    ctx.moveTo(95, y);
+    ctx.lineTo(925, y);
+    ctx.stroke();
+  }
+
+  // Dense logic gates blocks
+  ctx.fillStyle = '#102a4a';
+  for (let r = 0; r < 12; r++) {
+    for (let c = 0; c < 24; c++) {
+      if ((r + c) % 3 === 0) {
+        ctx.fillRect(100 + c * 34, 508 + r * 14, 26, 8);
+      }
     }
   }
 
-  // Interconnect bus lines connecting blocks
-  ctx.strokeStyle = '#38bdf8';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  // Bus from I-SRAM to Core
-  ctx.moveTo(340, 200);
-  ctx.lineTo(370, 200);
-  // Bus from Core to D-SRAM
-  ctx.moveTo(650, 200);
-  ctx.lineTo(680, 200);
-  // Bus from Core to Std Cells
-  ctx.moveTo(510, 440);
-  ctx.lineTo(510, 460);
-  ctx.stroke();
+  // Microchip technical identifiers
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = '11px monospace';
+  ctx.fillText('SKY130 CMOS · 1.2 x 1.2 mm DIE · AURA-RV32I', 95, 685);
 
   return canvas;
 }
 
-const vertex = `
-  attribute vec2 position;
-  attribute vec2 uv;
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = vec4(position, 0.0, 1.0);
-  }
+const vertex = `#version 300 es
+in vec2 position;
+in vec2 uv;
+out vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = vec4(position, 0.0, 1.0);
+}
 `;
 
-const fragment = `
-  precision highp float;
-  uniform sampler2D tMap;
-  uniform vec2 uResolution;
-  uniform vec2 uPointer;
-  uniform float uRevealRadius;
-  uniform float uSoftness;
-  uniform float uLinger;
-  uniform float uPixelSize;
-  uniform float uLevels;
-  uniform float uContrast;
-  uniform float uBrightness;
-  uniform vec3 uInkColor;
-  uniform vec3 uPaperColor;
-  uniform vec3 uRimColor;
-  uniform float uRim;
-  uniform float uBurst;
-  varying vec2 vUv;
+const fragment = `#version 300 es
+precision highp float;
+in vec2 vUv;
+out vec4 fragColor;
 
-  // 4x4 Bayer matrix
-  float bayer4(vec2 p) {
-    vec2 m = mod(p, 4.0);
-    int x = int(m.x);
-    int y = int(m.y);
-    if (y == 0) {
-      if (x == 0) return 0.0 / 16.0;
-      if (x == 1) return 8.0 / 16.0;
-      if (x == 2) return 2.0 / 16.0;
-      return 10.0 / 16.0;
-    } else if (y == 1) {
-      if (x == 0) return 12.0 / 16.0;
-      if (x == 1) return 4.0 / 16.0;
-      if (x == 2) return 14.0 / 16.0;
-      return 6.0 / 16.0;
-    } else if (y == 2) {
-      if (x == 0) return 3.0 / 16.0;
-      if (x == 1) return 11.0 / 16.0;
-      if (x == 2) return 1.0 / 16.0;
-      return 9.0 / 16.0;
-    } else {
-      if (x == 0) return 15.0 / 16.0;
-      if (x == 1) return 7.0 / 16.0;
-      if (x == 2) return 13.0 / 16.0;
-      return 5.0 / 16.0;
-    }
-  }
+uniform sampler2D tMap;
+uniform vec2 uResolution;
+uniform vec2 uPointer;
+uniform float uRevealRadius;
+uniform float uSoftness;
+uniform float uLinger;
+uniform float uPixelSize;
+uniform float uLevels;
+uniform float uContrast;
+uniform float uBrightness;
+uniform vec3 uInkColor;
+uniform vec3 uPaperColor;
+uniform vec3 uRimColor;
+uniform float uRim;
+uniform float uBurst;
 
-  void main() {
-    // Pixelate UV
-    vec2 pixelCoord = floor(gl_FragCoord.xy / uPixelSize) * uPixelSize;
-    vec2 uv = pixelCoord / uResolution;
+// 4x4 Bayer Matrix
+const float bayerMatrix[16] = float[16](
+   0.0/16.0,  8.0/16.0,  2.0/16.0, 10.0/16.0,
+  12.0/16.0,  4.0/16.0, 14.0/16.0,  6.0/16.0,
+   3.0/16.0, 11.0/16.0,  1.0/16.0,  9.0/16.0,
+  15.0/16.0,  7.0/16.0, 13.0/16.0,  5.0/16.0
+);
 
-    vec4 tex = texture2D(tMap, uv);
-    float luma = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
-    luma = (luma - 0.5) * uContrast + 0.5 + uBrightness;
-    luma = clamp(luma, 0.0, 1.0);
+void main() {
+  // Pixelate coordinates according to pixelSize
+  vec2 pixelatedCoord = floor(gl_FragCoord.xy / uPixelSize) * uPixelSize;
+  vec2 uv = pixelatedCoord / uResolution;
 
-    // Distance to pointer
-    float dist = distance(pixelCoord, uPointer);
-    float rad = uRevealRadius + uBurst * 180.0;
-    float reveal = 1.0 - smoothstep(rad * (1.0 - uSoftness), rad, dist);
+  // Distance from current pointer
+  float dist = distance(gl_FragCoord.xy, uPointer);
+  float radius = uRevealRadius * (1.0 + uBurst * 0.8);
+  float reveal = 1.0 - smoothstep(radius * (1.0 - uSoftness), radius, dist);
 
-    // Dither threshold
-    float threshold = bayer4(pixelCoord / uPixelSize);
-    float quantized = step(threshold, luma);
+  // Sample the procedural silicon layout texture
+  vec4 texColor = texture(tMap, uv);
+  float lum = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
 
-    // Color mixing
-    vec3 ditherColor = mix(uInkColor, uPaperColor, quantized);
-    
-    // Reveal interaction glow
-    vec3 activeColor = mix(ditherColor, tex.rgb * 1.35, reveal * 0.85);
+  // Adjust contrast and brightness
+  lum = (lum - 0.5) * uContrast + 0.5 + uBrightness;
+  lum = clamp(lum, 0.0, 1.0);
 
-    // Rim highlight around revealed area
-    float rimFactor = smoothstep(rad - rad * uRim, rad, dist) * (1.0 - smoothstep(rad, rad + 12.0, dist));
-    activeColor += uRimColor * rimFactor * 0.9;
+  // Get 4x4 bayer threshold
+  int x = int(mod(gl_FragCoord.x / uPixelSize, 4.0));
+  int y = int(mod(gl_FragCoord.y / uPixelSize, 4.0));
+  float threshold = bayerMatrix[y * 4 + x];
 
-    gl_FragColor = vec4(activeColor, 1.0);
-  }
+  // Bayer quantization
+  float dithered = step(threshold, lum);
+
+  // Rim highlight effect along the reveal circle boundary
+  float rimEdge = smoothstep(radius - 24.0, radius, dist) * (1.0 - smoothstep(radius, radius + 12.0, dist));
+
+  // Color selection
+  vec3 finalColor = mix(uInkColor, uPaperColor, dithered);
+  finalColor = mix(finalColor, uRimColor, rimEdge * uRim);
+
+  // Alpha fade towards perimeter
+  float alpha = mix(0.12, 0.95, reveal);
+  fragColor = vec4(finalColor, alpha);
+}
 `;
 
 export default function DitherVeil({
@@ -249,15 +233,15 @@ export default function DitherVeil({
   type = 'bayer',
   pixelSize = 3,
   levels = 3,
-  inkColor = '#071018',
-  paperColor = '#d8f7ff',
-  contrast = 1.15,
-  brightness = 0,
-  revealRadius = 240,
+  inkColor = '#050912',
+  paperColor = '#93c5fd',
+  contrast = 1.2,
+  brightness = 0.05,
+  revealRadius = 220,
   softness = 0.65,
   linger = 1,
   rimColor = '#22d3ee',
-  rim = 0.12,
+  rim = 0.15,
   wander = false,
   clickBurst = true,
   className = '',
@@ -268,17 +252,30 @@ export default function DitherVeil({
     const container = containerRef.current;
     if (!container) return;
 
-    let animId: number;
-    let burstVal = 0;
+    let animId: number = 0;
+    let burstVal = 0.0;
+    let isVisible = true;
+    let isTabActive = !document.hidden;
 
-    const renderer = new Renderer({
-      alpha: false,
-      antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 2),
-    });
+    let renderer: Renderer;
+    try {
+      renderer = new Renderer({
+        webgl: 2,
+        alpha: true,
+        antialias: false,
+        dpr: Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, 1.5),
+      });
+    } catch {
+      return;
+    }
+
     const gl = renderer.gl;
-    container.appendChild(gl.canvas);
-    gl.canvas.className = 'dither-veil-canvas';
+    const canvas = gl.canvas as HTMLCanvasElement;
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+    canvas.style.pointerEvents = 'none';
+    container.appendChild(canvas);
 
     const geometry = new Triangle(gl);
 
@@ -349,6 +346,7 @@ export default function DitherVeil({
       const nh = container.clientHeight || window.innerHeight;
       renderer.setSize(nw, nh);
       program.uniforms.uResolution.value = [nw, nh];
+      renderer.render({ scene: mesh });
     };
     window.addEventListener('resize', handleResize);
 
@@ -368,16 +366,47 @@ export default function DitherVeil({
       animId = requestAnimationFrame(render);
     };
 
-    animId = requestAnimationFrame(render);
+    const startLoop = () => {
+      if (isVisible && isTabActive && animId === 0) {
+        animId = requestAnimationFrame(render);
+      }
+    };
+
+    const stopLoop = () => {
+      if (animId !== 0) {
+        cancelAnimationFrame(animId);
+        animId = 0;
+      }
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        isVisible ? startLoop() : stopLoop();
+      },
+      { threshold: 0.05 }
+    );
+    io.observe(container);
+
+    const handleVisibility = () => {
+      isTabActive = !document.hidden;
+      isTabActive ? startLoop() : stopLoop();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    startLoop();
 
     return () => {
-      cancelAnimationFrame(animId);
+      stopLoop();
+      io.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('mousemove', handlePointerMove);
       window.removeEventListener('resize', handleResize);
       container.removeEventListener('click', handleClick);
-      if (gl.canvas && container.contains(gl.canvas)) {
-        container.removeChild(gl.canvas);
+      if (canvas.parentNode === container) {
+        container.removeChild(canvas);
       }
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, [brightness, clickBurst, contrast, inkColor, levels, linger, paperColor, pixelSize, revealRadius, rim, rimColor, softness, src]);
 

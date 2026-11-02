@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Github, Menu, X, Cpu } from 'lucide-react';
+import { Github, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChipLogo from '@/components/ui/ChipLogo';
 
@@ -11,7 +11,7 @@ export default function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -22,7 +22,20 @@ export default function Navbar() {
     { label: 'ISA', href: '#isa' },
     { label: 'Stack', href: '#stack' },
     { label: 'Physical Design', href: '#physical-design' },
+    { label: 'Roadmap', href: '#roadmap' },
   ];
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const id = href.replace('#', '');
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+      setMobileMenuOpen(false);
+    }
+  };
 
   return (
     <header
@@ -37,19 +50,21 @@ export default function Navbar() {
         {/* Zone 1: Single text element wordmark */}
         <a
           href="#home"
+          onClick={(e) => handleNavClick(e, '#home')}
           className="group flex items-center gap-3 text-lg font-bold tracking-tight text-white hover:text-cyan-300 transition-colors"
         >
           <ChipLogo size={28} />
           <span className="font-mono tracking-wider">AURA-RV</span>
         </a>
 
-        {/* Zone 2: 4-6 clean text navigation links */}
-        <nav className="hidden lg:flex items-center gap-7 text-sm font-medium text-zinc-300">
+        {/* Zone 2: Clean text navigation links */}
+        <nav className="hidden lg:flex items-center gap-6 xl:gap-7 text-sm font-medium text-zinc-300">
           {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
-              className="hover:text-white transition-colors hover:underline hover:underline-offset-8 hover:decoration-cyan-400"
+              onClick={(e) => handleNavClick(e, link.href)}
+              className="hover:text-white transition-colors hover:underline hover:underline-offset-8 hover:decoration-cyan-400 text-xs xl:text-sm"
             >
               {link.label}
             </a>
@@ -109,7 +124,7 @@ export default function Navbar() {
                 <a
                   key={link.href}
                   href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => handleNavClick(e, link.href)}
                   className="py-2 text-sm text-zinc-300 hover:text-cyan-400 transition-colors"
                 >
                   {link.label}
@@ -122,4 +137,3 @@ export default function Navbar() {
     </header>
   );
 }
-

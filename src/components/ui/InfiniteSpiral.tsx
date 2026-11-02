@@ -77,26 +77,69 @@ export default function InfiniteSpiral({
   const loopHeight = totalCards * verticalSpacing;
 
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let isVisible = true;
+    let isTabActive = !document.hidden;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     const animate = (time: number) => {
-      const dt = (time - lastTimeRef.current) / 1000;
+      const dt = Math.min((time - lastTimeRef.current) / 1000, 0.1);
       lastTimeRef.current = time;
 
-      if (!isHovered || !pauseOnHover) {
+      if (!prefersReducedMotion && (!isHovered || !pauseOnHover)) {
         const dir = direction === 'up' ? -1 : 1;
         setScrollOffset((prev) => {
-          let next = prev + dir * speed * 80 * dt;
+          let next = prev + dir * speed * 75 * dt;
           if (next < 0) next += loopHeight;
           if (next >= loopHeight) next -= loopHeight;
           return next;
         });
       }
 
-      animFrameRef.current = requestAnimationFrame(animate);
+      if (isVisible && isTabActive) {
+        animFrameRef.current = requestAnimationFrame(animate);
+      } else {
+        animFrameRef.current = null;
+      }
     };
 
-    animFrameRef.current = requestAnimationFrame(animate);
+    const startLoop = () => {
+      if (isVisible && isTabActive && !animFrameRef.current) {
+        lastTimeRef.current = performance.now();
+        animFrameRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    const stopLoop = () => {
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
+      }
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        isVisible ? startLoop() : stopLoop();
+      },
+      { threshold: 0.05 }
+    );
+    io.observe(container);
+
+    const handleVisibility = () => {
+      isTabActive = !document.hidden;
+      isTabActive ? startLoop() : stopLoop();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    startLoop();
+
     return () => {
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      stopLoop();
+      io.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [direction, isHovered, loopHeight, pauseOnHover, speed]);
 
@@ -117,6 +160,27 @@ export default function InfiniteSpiral({
     dragStartRef.current = null;
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches[0]) {
+      dragStartRef.current = { y: e.touches[0].clientY, offset: scrollOffset };
+      setIsHovered(true);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!dragStartRef.current || !e.touches[0]) return;
+    const dy = e.touches[0].clientY - dragStartRef.current.y;
+    let next = dragStartRef.current.offset - dy;
+    if (next < 0) next += loopHeight;
+    if (next >= loopHeight) next -= loopHeight;
+    setScrollOffset(next);
+  };
+
+  const handleTouchEnd = () => {
+    dragStartRef.current = null;
+    setIsHovered(false);
+  };
+
   return (
     <div
       ref={containerRef}
@@ -130,6 +194,9 @@ export default function InfiniteSpiral({
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       <div className="infinite-spiral-stage">
         {fullItems.map((item, index) => {
@@ -172,8 +239,8 @@ export default function InfiniteSpiral({
             >
               <div className="flex h-full w-full flex-col items-center justify-between pointer-events-none">
                 <div className="flex w-full items-center justify-between text-[10px] font-mono text-zinc-400">
-                  <span className="text-cyan-400/80">0{((index % items.length) + 1)}</span>
-                  <span className="truncate max-w-[80px] text-zinc-500 uppercase tracking-wider">{item.category || 'ARCH'}</span>
+                  <span className="text-cyan-400/80 font-bold">0{((index % items.length) + 1)}</span>
+                  <span className="truncate max-w-[80px] text-zinc-400 uppercase tracking-wider">{item.category || 'ARCH'}</span>
                 </div>
 
                 <div className="my-auto flex flex-col items-center justify-center p-1 w-full text-center">
